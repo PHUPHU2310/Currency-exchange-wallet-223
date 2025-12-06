@@ -695,3 +695,499 @@ td, th {
   background: inherit;
   color: inherit;
 }
+
+/* ========================================
+   MOBILE RESPONSIVE - PERFECT BALANCE
+   ======================================== */
+
+/* Mobile First Approach */
+@media (max-width: 768px) {
+  /* Navbar - Compact on mobile */
+  .navbar-brand {
+    font-size: 14px !important;
+  }
+  
+  .navbar .container-fluid {
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+  
+  .navbar .d-flex {
+    flex-wrap: wrap;
+    gap: 8px !important;
+    justify-content: center;
+  }
+  
+  .navbar .d-flex > div {
+    flex: 0 0 auto;
+  }
+  
+  #userEmail, #networkName, #walletAddress {
+    font-size: 10px !important;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .navbar .btn-sm {
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+  }
+  
+  .navbar i {
+    font-size: 12px !important;
+  }
+  
+  /* Trading Container - Stack vertically */
+  .trading-container {
+    flex-direction: column !important;
+    height: auto !important;
+  }
+  
+  /* Sidebar - Full width on mobile */
+  .sidebar {
+    width: 100% !important;
+    max-height: 300px;
+    overflow-y: auto;
+    border-right: none !important;
+    border-bottom: 1px solid #1e2139;
+  }
+  
+  .sidebar-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #161b22 !important;
+  }
+  
+  .market-item {
+    padding: 10px !important;
+    font-size: 12px;
+  }
+  
+  .market-item strong {
+    font-size: 13px;
+  }
+  
+  .market-item small {
+    font-size: 10px;
+  }
+  
+  .price-up, .price-down {
+    font-size: 12px;
+  }
+  
+  /* Main Content - Full width */
+  .main-content {
+    width: 100% !important;
+    overflow-x: hidden;
+  }
+  
+  /* Stats Bar - Scroll horizontally */
+  .stats-bar .row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .stats-bar .col-auto {
+    flex: 0 0 auto;
+    min-width: 120px;
+  }
+  
+  .stat-item small {
+    font-size: 10px;
+  }
+  
+  .stat-item .h5 {
+    font-size: 14px !important;
+  }
+  
+  /* Chart - Reduce height */
+  .chart-section {
+    min-height: 300px !important;
+    height: 350px !important;
+  }
+  
+  .chart-container {
+    height: 250px !important;
+    padding: 10px !important;
+  }
+  
+  .chart-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .chart-header h5 {
+    font-size: 14px !important;
+  }
+  
+  .btn-group {
+    flex-wrap: nowrap;
+  }
+  
+  .btn-group .btn {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+  }
+  
+  /* Trading Section - Stack columns */
+  .trading-section .row {
+    flex-direction: column !important;
+  }
+  
+  .trading-section .col-md-4 {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid #1e2139;
+  }
+  
+  /* Order Book - Reduce height */
+  .order-book-content {
+    max-height: 250px !important;
+  }
+  
+  .order-book table {
+    font-size: 11px;
+  }
+  
+  .order-book th, .order-book td {
+    padding: 4px !important;
+  }
+  
+  .current-price-row {
+    padding: 8px !important;
+  }
+  
+  .current-price-row strong {
+    font-size: 14px !important;
+  }
+  
+  /* Trading Form - Compact */
+  .trading-form {
+    padding: 0 !important;
+  }
+  
+  .trading-form .p-3 {
+    padding: 12px !important;
+  }
+  
+  .nav-tabs {
+    font-size: 12px;
+  }
+  
+  .nav-tabs .nav-link {
+    padding: 8px 16px !important;
+  }
+  
+  .form-label {
+    font-size: 11px !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .form-control, .input-group-text {
+    font-size: 12px !important;
+    padding: 8px !important;
+  }
+  
+  .form-range {
+    margin: 8px 0 !important;
+  }
+  
+  .trading-form .btn {
+    padding: 10px !important;
+    font-size: 13px !important;
+  }
+  
+  /* Recent Trades - Reduce height */
+  .trades-list {
+    max-height: 250px !important;
+  }
+  
+  .trades-list table {
+    font-size: 11px;
+  }
+  
+  .trades-list th, .trades-list td {
+    padding: 4px !important;
+  }
+  
+  /* Order History - Scrollable tables */
+  .order-history {
+    margin-top: 15px !important;
+  }
+  
+  .order-history .nav-pills {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .order-history .nav-link {
+    font-size: 11px !important;
+    padding: 8px 12px !important;
+    white-space: nowrap;
+  }
+  
+  .order-history .table {
+    font-size: 10px;
+  }
+  
+  .order-history th, .order-history td {
+    padding: 6px 4px !important;
+    white-space: nowrap;
+  }
+  
+  .order-history .table-hover {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
+  .order-history thead, .order-history tbody, .order-history tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+  
+  /* Badges */
+  .badge {
+    font-size: 9px !important;
+    padding: 2px 6px !important;
+  }
+  
+  /* Buttons */
+  .btn-sm {
+    font-size: 11px !important;
+    padding: 6px 10px !important;
+  }
+  
+  /* Scrollbar for mobile */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  
+  /* Hide some columns on very small screens */
+  @media (max-width: 480px) {
+    .order-history th:nth-child(3),
+    .order-history td:nth-child(3) {
+      display: none;
+    }
+    
+    .order-history th:last-child,
+    .order-history td:last-child {
+      display: none;
+    }
+  }
+}
+
+/* Tablet Landscape (768px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 220px !important;
+  }
+  
+  .market-item {
+    padding: 12px;
+    font-size: 13px;
+  }
+  
+  .chart-section {
+    height: 400px !important;
+  }
+  
+  .chart-container {
+    height: 300px !important;
+  }
+  
+  .trading-section .col-md-4 {
+    font-size: 13px;
+  }
+  
+  .form-control, .input-group-text {
+    font-size: 13px !important;
+  }
+}
+
+/* Tablet Portrait (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .navbar-brand {
+    font-size: 16px !important;
+  }
+  
+  #userEmail, #networkName, #walletAddress {
+    font-size: 11px !important;
+    max-width: 100px;
+  }
+  
+  .sidebar {
+    max-height: 350px;
+  }
+  
+  .chart-section {
+    height: 380px !important;
+  }
+  
+  .chart-container {
+    height: 280px !important;
+  }
+  
+  .order-book-content,
+  .trades-list {
+    max-height: 300px !important;
+  }
+}
+
+/* Very Small Mobile (max 375px) */
+@media (max-width: 375px) {
+  .navbar-brand {
+    font-size: 12px !important;
+  }
+  
+  .navbar .btn-sm {
+    padding: 3px 6px !important;
+    font-size: 9px !important;
+  }
+  
+  #userEmail, #networkName, #walletAddress {
+    font-size: 9px !important;
+    max-width: 60px;
+  }
+  
+  .stat-item .h5 {
+    font-size: 12px !important;
+  }
+  
+  .chart-section {
+    height: 320px !important;
+  }
+  
+  .chart-container {
+    height: 220px !important;
+    padding: 8px !important;
+  }
+  
+  .trading-form .p-3 {
+    padding: 10px !important;
+  }
+  
+  .form-control, .input-group-text {
+    font-size: 11px !important;
+    padding: 6px !important;
+  }
+}
+
+/* Landscape orientation */
+@media (max-width: 768px) and (orientation: landscape) {
+  .sidebar {
+    max-height: 200px;
+  }
+  
+  .chart-section {
+    height: 300px !important;
+  }
+  
+  .chart-container {
+    height: 220px !important;
+  }
+  
+  .order-book-content,
+  .trades-list {
+    max-height: 200px !important;
+  }
+}
+
+/* Fix touch scrolling */
+@media (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .table-responsive {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent zoom on input focus */
+  input[type="text"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Hide disconnect button on very small screens */
+@media (max-width: 480px) {
+  #disconnectBtn {
+    display: none !important;
+  }
+  
+  .navbar .gap-3 {
+    gap: 4px !important;
+  }
+}
+
+/* Optimize for iPhone SE (375x667) */
+@media (max-width: 375px) and (max-height: 667px) {
+  .navbar {
+    padding: 4px 8px !important;
+  }
+  
+  .sidebar {
+    max-height: 250px;
+  }
+  
+  .chart-section {
+    height: 280px !important;
+  }
+}
+
+/* Optimize for iPhone 12 Pro (390x844) */
+@media (min-width: 376px) and (max-width: 414px) {
+  .chart-section {
+    height: 340px !important;
+  }
+  
+  .chart-container {
+    height: 240px !important;
+  }
+}
+
+/* Optimize for Samsung Galaxy S20 (360x800) */
+@media (max-width: 360px) {
+  body {
+    font-size: 13px;
+  }
+  
+  .navbar-brand {
+    font-size: 11px !important;
+  }
+  
+  .stat-item small {
+    font-size: 9px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .navbar,
+  .sidebar,
+  .btn,
+  .nav-tabs,
+  .nav-pills {
+    display: none !important;
+  }
+  
+  .main-content {
+    width: 100% !important;
+  }
+  
+  .chart-section,
+  .order-history {
+    page-break-inside: avoid;
+  }
+}
