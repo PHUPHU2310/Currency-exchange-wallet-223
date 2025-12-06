@@ -4,6 +4,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CurrencyExchangeWallet - Professional Trading Platform</title>
+  
+  <!-- ========================================
+       AUTHENTICATION CHECK - MUST LOGIN FIRST
+       ======================================== -->
+  <script>
+    // Check authentication IMMEDIATELY before loading anything
+    (function() {
+      'use strict';
+      
+      console.log('🔒 Checking authentication...');
+      
+      // Check if logged in
+      const isLoggedIn = localStorage.getItem("loggedIn");
+      const passwordHash = localStorage.getItem("passwordHash");
+      const validHash = "53d51dc5720d345c3c15c1cd4997814f"; // MD5 of "@@@@@@@@"
+      
+      // If not logged in or invalid password hash, redirect immediately
+      if (isLoggedIn !== "true" || !passwordHash || passwordHash !== validHash) {
+        console.log('❌ Not authenticated - redirecting to login...');
+        localStorage.clear();
+        window.location.replace("login.html");
+        // Stop script execution
+        throw new Error('Authentication required');
+      }
+      
+      console.log('✅ Authentication passed');
+    })();
+  </script>
+  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
@@ -334,7 +363,7 @@
                 </table>
                 <div class="current-price-row p-2 bg-light text-center">
                   <strong class="text-success">8,242.14</strong>
-                  <small class="ms-2">≈ $3.041,25</small>
+                  <small class="ms-2">≈ $8,242.14</small>
                 </div>
                 <table class="table table-sm mb-0">
                   <tbody id="buyOrders">
@@ -592,9 +621,12 @@
     window.addEventListener('DOMContentLoaded', function() {
       console.log('🚀 DOM Content Loaded');
       
-      // Authentication check with MD5 validation
+      // ========================================
+      // DOUBLE CHECK AUTHENTICATION
+      // ========================================
       if (localStorage.getItem("loggedIn") !== "true") {
-        window.location.href = "login.html";
+        console.log('❌ Not logged in - redirecting...');
+        window.location.replace("login.html");
         return;
       }
       
@@ -603,9 +635,13 @@
       const validHash = "53d51dc5720d345c3c15c1cd4997814f";
       
       if (!passwordHash || passwordHash !== validHash) {
+        console.log('❌ Invalid password hash - clearing and redirecting...');
         localStorage.clear();
-        window.location.href = "login.html";
+        window.location.replace("login.html");
+        return;
       }
+      
+      console.log('✅ Authentication verified in DOMContentLoaded');
       
       // Display username
       const username = localStorage.getItem("username");
@@ -1856,7 +1892,19 @@
       }, 500);
 
     }); // End DOMContentLoaded
+    
+    // ========================================
+    // PREVENT BACK BUTTON AFTER LOGOUT
+    // ========================================
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        // Page was loaded from cache (back button)
+        if (localStorage.getItem("loggedIn") !== "true") {
+          console.log('⚠️ Cached page - checking auth...');
+          window.location.replace("login.html");
+        }
+      }
+    });
   </script>
 </body>
 </html>
-
