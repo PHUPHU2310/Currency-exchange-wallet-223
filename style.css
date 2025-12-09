@@ -1191,3 +1191,98 @@ td, th {
     page-break-inside: avoid;
   }
 }
+
+/* ========================================
+   BANK DEPOSIT MODAL STYLES
+   ======================================== */
+
+#bankDepositModal .modal-content {
+  background: #0d1117 !important;
+  border: 1px solid #30363d;
+}
+
+#bankDepositModal .modal-header {
+  border-bottom: 1px solid #30363d;
+}
+
+#bankDepositModal .form-control,
+#bankDepositModal .form-select {
+  background: #161b22 !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #30363d !important;
+}
+
+#bankDepositModal .form-control:focus,
+#bankDepositModal .form-select:focus {
+  background: #161b22 !important;
+  color: #e0e0e0 !important;
+  border-color: #00ff41 !important;
+  box-shadow: 0 0 0 0.2rem rgba(0, 255, 65, 0.25);
+}
+
+#bankDepositModal .form-select option {
+  background: #161b22;
+  color: #e0e0e0;
+}
+
+#bankDepositModal .spinner-border {
+  border-width: 0.3rem;
+}
+
+#bankDepositModal .progress {
+  background: #161b22;
+  border: 1px solid #30363d;
+}
+
+#bankDepositModal .progress-bar {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+#bankDepositModal .card {
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+}
+
+/* Success animation */
+@keyframes checkmark {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+#successStep .fa-check-circle {
+  animation: checkmark 0.6s ease-in-out;
+}
+
+/* Mobile responsive for modal */
+@media (max-width: 768px) {
+  #bankDepositModal .modal-dialog {
+    margin: 10px;
+  }
+  
+  #bankDepositModal .modal-body {
+    padding: 15px;
+  }
+  
+  #bankDepositModal .spinner-border {
+    width: 3rem !important;
+    height: 3rem !important;
+  }
+  
+  #bankDepositModal h4 {
+    font-size: 1.2rem;
+  }
+  
+  #bankDepositModal .fa-check-circle {
+    font-size: 3.5rem !important;
+  }
+}

@@ -39,6 +39,152 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <style>
+    /* Modern Loading Animation */
+    .loading-ring {
+      display: inline-block;
+      position: relative;
+      width: 80px;
+      height: 80px;
+    }
+    .loading-ring div {
+      box-sizing: border-box;
+      display: block;
+      position: absolute;
+      width: 64px;
+      height: 64px;
+      margin: 8px;
+      border: 8px solid #00ff41;
+      border-radius: 50%;
+      animation: loading-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+      border-color: #00ff41 transparent transparent transparent;
+    }
+    .loading-ring div:nth-child(1) {
+      animation-delay: -0.45s;
+    }
+    .loading-ring div:nth-child(2) {
+      animation-delay: -0.3s;
+    }
+    .loading-ring div:nth-child(3) {
+      animation-delay: -0.15s;
+    }
+    @keyframes loading-ring {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Circular Progress Bar */
+    .circular-progress {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin: 0 auto;
+    }
+    .circular-progress svg {
+      transform: rotate(-90deg);
+    }
+    .circular-progress-circle {
+      fill: none;
+      stroke: #30363d;
+      stroke-width: 8;
+    }
+    .circular-progress-bar {
+      fill: none;
+      stroke: #00ff41;
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.3s ease;
+      filter: drop-shadow(0 0 10px #00ff41);
+    }
+    .progress-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      font-weight: bold;
+      color: #00ff41;
+      text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+    }
+
+    /* Success Checkmark Animation */
+    .success-checkmark {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto;
+    }
+    .success-checkmark .check-icon {
+      width: 80px;
+      height: 80px;
+      position: relative;
+      border-radius: 50%;
+      box-sizing: content-box;
+      border: 4px solid #00ff41;
+      animation: checkmark-bounce 0.6s ease;
+    }
+    .success-checkmark .check-icon::before {
+      top: 3px;
+      left: -2px;
+      width: 30px;
+      transform-origin: 100% 50%;
+      border-radius: 100px 0 0 100px;
+    }
+    .success-checkmark .check-icon::after {
+      top: 0;
+      left: 30px;
+      width: 60px;
+      transform-origin: 0 50%;
+      border-radius: 0 100px 100px 0;
+      animation: checkmark-rotate 4.25s ease;
+    }
+    .success-checkmark .check-icon .icon-line {
+      height: 5px;
+      background-color: #00ff41;
+      display: block;
+      border-radius: 2px;
+      position: absolute;
+      z-index: 10;
+    }
+    .success-checkmark .check-icon .icon-line.line-tip {
+      top: 46px;
+      left: 14px;
+      width: 25px;
+      transform: rotate(45deg);
+      animation: checkmark-tip 0.75s 0.3s ease;
+    }
+    .success-checkmark .check-icon .icon-line.line-long {
+      top: 38px;
+      right: 8px;
+      width: 47px;
+      transform: rotate(-45deg);
+      animation: checkmark-long 0.75s 0.6s ease;
+    }
+    @keyframes checkmark-rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes checkmark-bounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    @keyframes checkmark-tip {
+      0% { width: 0; left: 1px; top: 19px; }
+      54% { width: 0; left: 1px; top: 19px; }
+      70% { width: 50px; left: -8px; top: 37px; }
+      84% { width: 17px; left: 21px; top: 48px; }
+      100% { width: 25px; left: 14px; top: 46px; }
+    }
+    @keyframes checkmark-long {
+      0% { width: 0; right: 46px; top: 54px; }
+      65% { width: 0; right: 46px; top: 54px; }
+      84% { width: 55px; right: 0px; top: 35px; }
+      100% { width: 47px; right: 8px; top: 38px; }
+    }
+  </style>
 </head>
 <body>
   <!-- Header -->
@@ -64,6 +210,10 @@
             --
           </span>
         </div>
+        <!-- ADD: Bank Deposit Button -->
+        <button class="btn btn-sm btn-success" onclick="openBankDepositModal()">
+          <i class="fas fa-university"></i> Nhận tiền
+        </button>
         <button class="btn btn-sm btn-outline-light" id="connectBtn" onclick="connectWallet()">
           <i class="fas fa-wallet"></i> <span id="walletStatus">Connect Wallet</span>
         </button>
@@ -405,27 +555,39 @@
                   <!-- Buy Tab -->
                   <div class="tab-pane fade show active" id="buy-tab">
                     <div class="mb-3">
+                      <label class="form-label small">Nguồn tiền</label>
+                      <select class="form-select form-select-sm" id="buyCurrency">
+                        <option value="USDT" selected>💵 USDT (Crypto)</option>
+                        <option value="VND">🏦 VND (Ngân hàng)</option>
+                      </select>
+                      <small class="text-muted" id="buyExchangeRate">Tỷ giá: 1 USD = 25,000 VND</small>
+                    </div>
+                    
+                    <div class="mb-3">
                       <label class="form-label small">Số dư khả dụng</label>
                       <div class="text-end">
-                        <strong id="balance">9.5632</strong> <span class="text-muted">ETH</span>
+                        <strong id="balance">0.0000</strong> <span class="text-muted" id="balanceCurrency">USDT</span>
                       </div>
                     </div>
+                    
                     <div class="mb-3">
                       <label class="form-label small">Giá</label>
-                      <div class="input-group">
-                        <input type="number" class="form-control" id="buyPrice" placeholder="0.00" value="1136.02">
-                        <span class="input-group-text">USDT</span>
+                      <div class="input-group input-group-sm">
+                        <input type="number" class="form-control" id="buyPrice" placeholder="0.00" value="0.00" step="0.01">
+                        <span class="input-group-text" id="buyPriceCurrency">USDT</span>
                       </div>
                     </div>
+                    
                     <div class="mb-3">
                       <label class="form-label small">Số lượng</label>
-                      <div class="input-group">
-                        <input type="number" class="form-control" id="buyAmount" placeholder="0.00">
+                      <div class="input-group input-group-sm">
+                        <input type="number" class="form-control" id="buyAmount" placeholder="0.00" step="0.00000001">
                         <span class="input-group-text">ETH</span>
                       </div>
                     </div>
+                    
                     <div class="mb-3">
-                      <input type="range" class="form-range" min="0" max="100" step="25" id="buyPercentage">
+                      <input type="range" class="form-range" min="0" max="100" step="25" id="buyPercentage" value="0">
                       <div class="d-flex justify-content-between small text-muted">
                         <span>0%</span>
                         <span>25%</span>
@@ -434,13 +596,15 @@
                         <span>100%</span>
                       </div>
                     </div>
+                    
                     <div class="mb-3">
                       <label class="form-label small">Tổng</label>
-                      <div class="input-group">
+                      <div class="input-group input-group-sm">
                         <input type="number" class="form-control" id="buyTotal" placeholder="0.00" readonly>
-                        <span class="input-group-text">USDT</span>
+                        <span class="input-group-text" id="buyTotalCurrency">USDT</span>
                       </div>
                     </div>
+                    
                     <button class="btn btn-success w-100" onclick="depositETH()">
                       <i class="fas fa-arrow-up"></i> Mua ETH
                     </button>
@@ -449,27 +613,39 @@
                   <!-- Sell Tab -->
                   <div class="tab-pane fade" id="sell-tab">
                     <div class="mb-3">
+                      <label class="form-label small">Nhận tiền vào</label>
+                      <select class="form-select form-select-sm" id="sellCurrency">
+                        <option value="USDT" selected>💵 USDT (Crypto)</option>
+                        <option value="VND">🏦 VND (Ngân hàng)</option>
+                      </select>
+                      <small class="text-muted" id="sellExchangeRate">Tỷ giá: 1 USD = 25,000 VND</small>
+                    </div>
+                    
+                    <div class="mb-3">
                       <label class="form-label small">Số dư khả dụng</label>
                       <div class="text-end">
-                        <strong id="balanceSell">86.1266</strong> <span class="text-muted">ETH</span>
+                        <strong id="balanceSell">0.0000</strong> <span class="text-muted">ETH</span>
                       </div>
                     </div>
+                    
                     <div class="mb-3">
                       <label class="form-label small">Giá</label>
-                      <div class="input-group">
-                        <input type="number" class="form-control" id="sellPrice" placeholder="0.00" value="6487.15">
-                        <span class="input-group-text">USDT</span>
+                      <div class="input-group input-group-sm">
+                        <input type="number" class="form-control" id="sellPrice" placeholder="0.00" value="0.00" step="0.01">
+                        <span class="input-group-text" id="sellPriceCurrency">USDT</span>
                       </div>
                     </div>
+                    
                     <div class="mb-3">
                       <label class="form-label small">Số lượng</label>
-                      <div class="input-group">
-                        <input type="number" class="form-control" id="sellAmount" placeholder="0.00">
+                      <div class="input-group input-group-sm">
+                        <input type="number" class="form-control" id="sellAmount" placeholder="0.00" step="0.00000001">
                         <span class="input-group-text">ETH</span>
                       </div>
                     </div>
+                    
                     <div class="mb-3">
-                      <input type="range" class="form-range" min="0" max="100" step="25" id="sellPercentage">
+                      <input type="range" class="form-range" min="0" max="100" step="25" id="sellPercentage" value="0">
                       <div class="d-flex justify-content-between small text-muted">
                         <span>0%</span>
                         <span>25%</span>
@@ -478,13 +654,15 @@
                         <span>100%</span>
                       </div>
                     </div>
+                    
                     <div class="mb-3">
                       <label class="form-label small">Tổng</label>
-                      <div class="input-group">
+                      <div class="input-group input-group-sm">
                         <input type="number" class="form-control" id="sellTotal" placeholder="0.00" readonly>
-                        <span class="input-group-text">USDT</span>
+                        <span class="input-group-text" id="sellTotalCurrency">USDT</span>
                       </div>
                     </div>
+                    
                     <button class="btn btn-danger w-100" onclick="withdrawETH()">
                       <i class="fas fa-arrow-down"></i> Bán ETH
                     </button>
@@ -614,6 +792,212 @@
     </main>
   </div>
 
+  <!-- UPDATED: Bank Deposit Modal with Modern Loading -->
+  <div class="modal fade" id="bankDepositModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" style="background: #0d1117; color: #e0e0e0; border: 1px solid #30363d;">
+        <div class="modal-header" style="border-bottom: 1px solid #30363d;">
+          <h5 class="modal-title">
+            <i class="fas fa-money-bill-wave text-success"></i> Nhận tiền vào tài khoản
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Selection Step -->
+          <div id="depositSelectionStep">
+            <!-- Currency Selection -->
+            <div class="mb-3">
+              <label class="form-label">Chọn loại tiền bạn cần nhận</label>
+              <select class="form-select" id="depositCurrencyType" style="background: #161b22; color: #e0e0e0; border: 1px solid #30363d;">
+                <option value="VND" selected>🏦 VND (Ngân hàng Việt Nam)</option>
+                <option value="USDT">💵 USDT (Cryptocurrency)</option>
+              </select>
+            </div>
+
+            <!-- VND Deposit Section -->
+            <div id="vndDepositSection">
+              <div class="mb-3">
+                <label class="form-label">Chọn Ngân hàng</label>
+                <select class="form-select" id="bankSelect" style="background: #161b22; color: #e0e0e0; border: 1px solid #30363d;">
+                  <option value="">-- Chọn ngân hàng --</option>
+                  <option value="vcb">🏦 Vietcombank (VCB)</option>
+                  <option value="tcb">🏦 Techcombank (TCB)</option>
+                  <option value="mb">🏦 MB Bank (MB)</option>
+                  <option value="acb">🏦 ACB</option>
+                  <option value="vib">🏦 VIB</option>
+                  <option value="bidv">🏦 BIDV</option>
+                  <option value="agribank">🏦 Agribank</option>
+                  <option value="tpbank">🏦 TPBank</option>
+                  <option value="sacombank">🏦 Sacombank</option>
+                  <option value="vietinbank">🏦 VietinBank</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Số tiền nhận (VND)</label>
+                <input type="number" class="form-control" id="depositAmountVND" placeholder="Nhập số tiền" 
+                       style="background: #161b22; color: #e0e0e0; border: 1px solid #30363d;"
+                       min="50000" step="10000">
+                <small class="text-muted">Tối thiểu: 50,000 VND</small>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Số tài khoản</label>
+                <input type="text" class="form-control" id="accountNumber" placeholder="Nhập số tài khoản"
+                       style="background: #161b22; color: #e0e0e0; border: 1px solid #30363d;">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Tên chủ tài khoản</label>
+                <input type="text" class="form-control" id="accountName" placeholder="Nhập tên chủ tài khoản"
+                       style="background: #161b22; color: #e0e0e0; border: 1px solid #30363d;">
+              </div>
+            </div>
+
+            <!-- USDT Deposit Section -->
+            <div id="usdtDepositSection" style="display: none;">
+              <div class="mb-3">
+                <label class="form-label">Chọn mạng lưới (Network)</label>
+                <select class="form-select" id="networkSelect" style="background: #161b22; color: #e0e0e0; border: 1px solid #30363d;">
+                  <option value="TRC20" selected>⚡ TRC20 (Tron) - Phí thấp</option>
+                  <option value="ERC20">🔷 ERC20 (Ethereum)</option>
+                  <option value="BEP20">🟡 BEP20 (BSC)</option>
+                  <option value="Polygon">🟣 Polygon (MATIC)</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Số tiền nhận (USDT)</label>
+                <input type="number" class="form-control" id="depositAmountUSDT" placeholder="Nhập số USDT" 
+                       style="background: #161b22; color: #e0e0e0; border: 1px solid #30363d;"
+                       min="10" step="0.01">
+                <small class="text-muted">Tối thiểu: 10 USDT</small>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Địa chỉ ví gửi (Wallet Address)</label>
+                <input type="text" class="form-control" id="senderWallet" placeholder="0x..." 
+                       style="background: #161b22; color: #e0e0e0; border: 1px solid #30363d;">
+                <small class="text-muted">Địa chỉ ví bạn gửi USDT từ đó</small>
+              </div>
+
+              <div class="alert" style="background: #1e2139; border: 1px solid #30363d; color: #8b949e;">
+                <i class="fas fa-wallet text-warning"></i>
+                <strong>Địa chỉ nhận:</strong>
+                <div class="mt-2 p-2" style="background: #0d1117; border-radius: 5px; font-family: monospace; font-size: 12px; word-break: break-all;">
+                  TYDz8qJhZ5KfGQhgHqxKLRgBjBsQzHg7Pj
+                </div>
+                <small class="text-warning mt-1 d-block">⚠️ Chỉ gửi USDT qua mạng đã chọn</small>
+              </div>
+            </div>
+
+            <div class="alert" style="background: #1e2139; border: 1px solid #30363d; color: #8b949e;">
+              <i class="fas fa-info-circle text-info"></i>
+              <strong>Lưu ý:</strong> Giao dịch sẽ được xử lý trong 1-5 phút. Vui lòng không tắt trình duyệt.
+            </div>
+
+            <button class="btn btn-success w-100" onclick="processDeposit()">
+              <i class="fas fa-paper-plane"></i> Xác nhận 
+            </button>
+          </div>
+
+          <!-- Modern Loading Step -->
+          <div id="loadingStep" style="display: none;">
+            <div class="text-center py-5">
+              <!-- Circular Progress -->
+              <div class="circular-progress mb-4">
+                <svg width="120" height="120">
+                  <circle class="circular-progress-circle" cx="60" cy="60" r="54"></circle>
+                  <circle class="circular-progress-bar" id="progressCircle" cx="60" cy="60" r="54"
+                          stroke-dasharray="339.292" stroke-dashoffset="339.292"></circle>
+                </svg>
+                <div class="progress-text" id="progressPercentage">0%</div>
+              </div>
+
+              <h5 class="mb-3" style="color: #00ff41;">
+                <i class="fas fa-sync fa-spin"></i> Đang xử lý giao dịch...
+              </h5>
+              
+              <p class="text-muted mb-3" id="loadingMessage">Đang kết nối với hệ thống thanh toán...</p>
+
+              <!-- Loading Steps -->
+              <div class="text-start mx-auto" style="max-width: 300px;">
+                <div class="mb-2 p-2" style="background: #161b22; border-radius: 5px;" id="step1">
+                  <i class="fas fa-circle-notch fa-spin text-warning"></i>
+                  <span class="ms-2 text-muted">Xác thực thông tin...</span>
+                </div>
+                <div class="mb-2 p-2" style="background: #161b22; border-radius: 5px; opacity: 0.5;" id="step2">
+                  <i class="fas fa-circle text-muted"></i>
+                  <span class="ms-2 text-muted">Kết nối blockchain...</span>
+                </div>
+                <div class="mb-2 p-2" style="background: #161b22; border-radius: 5px; opacity: 0.5;" id="step3">
+                  <i class="fas fa-circle text-muted"></i>
+                  <span class="ms-2 text-muted">Xác nhận giao dịch...</span>
+                </div>
+                <div class="mb-2 p-2" style="background: #161b22; border-radius: 5px; opacity: 0.5;" id="step4">
+                  <i class="fas fa-circle text-muted"></i>
+                  <span class="ms-2 text-muted">Hoàn tất...</span>
+                </div>
+              </div>
+
+              <p class="text-muted mt-4 small">
+                <i class="fas fa-shield-alt text-success"></i> Giao dịch được mã hóa SSL 256-bit
+              </p>
+            </div>
+          </div>
+
+          <!-- Success Step with Animation -->
+          <div id="successStep" style="display: none;">
+            <div class="text-center py-5">
+              <!-- Success Checkmark Animation -->
+              <div class="success-checkmark mb-4">
+                <div class="check-icon">
+                  <span class="icon-line line-tip"></span>
+                  <span class="icon-line line-long"></span>
+                  <div class="icon-circle"></div>
+                  <div class="icon-fix"></div>
+                </div>
+              </div>
+
+              <h4 class="text-success mb-3">
+                <i class="fas fa-check-circle"></i> Giao dịch thành công!
+              </h4>
+              
+              <div class="card mb-3" style="background: #161b22; border: 1px solid #30363d;">
+                <div class="card-body">
+                  <p class="mb-2">
+                    <strong>Mã giao dịch:</strong> 
+                    <span id="transactionId" style="color: #00ff41; font-family: monospace; font-size: 14px;"></span>
+                  </p>
+                  <p class="mb-2">
+                    <strong>Loại tiền:</strong> 
+                    <span id="depositCurrency" class="text-warning"></span>
+                  </p>
+                  <p class="mb-2">
+                    <strong>Số tiền:</strong> 
+                    <span id="depositedAmount" class="text-success fs-5"></span>
+                  </p>
+                  <p class="mb-2">
+                    <strong>Nguồn:</strong> 
+                    <span id="depositSource"></span>
+                  </p>
+                  <p class="mb-0">
+                    <strong>Thời gian:</strong> 
+                    <span id="depositTime"></span>
+                  </p>
+                </div>
+              </div>
+
+              <button class="btn btn-success w-100" data-bs-dismiss="modal">
+                <i class="fas fa-check"></i> Hoàn tất
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="app.js"></script>
   
@@ -690,6 +1074,7 @@
       let priceChart = null;
       let currentCoinId = 'ethereum';
       let currentTimeframe = '4H';
+      const USD_TO_VND_RATE = 25000; // Fixed exchange rate
 
       // ========================================
       // ENHANCED NETWORK FUNCTIONS - AUTO DETECT ANY NETWORK
@@ -1297,7 +1682,7 @@
           localStorage.removeItem("networkName");
           document.getElementById("walletAddress").textContent = "--";
           document.getElementById("networkName").textContent = "--";
-        }
+               }
       }
 
       // Click wallet address to copy
@@ -1347,6 +1732,7 @@
               priceElement.textContent = formattedPrice;
               priceElement.className = change >= 0 ? 'price-up' : 'price-down';
               
+
               changeElement.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
               changeElement.className = change >= 0 ? 'text-success' : 'text-danger';
             }
@@ -1478,418 +1864,682 @@
         });
       });
 
-      // Auto-calculate total
-      document.getElementById('buyAmount').addEventListener('input', function() {
-        const price = parseFloat(document.getElementById('buyPrice').value) || 0;
-        const amount = parseFloat(this.value) || 0;
-        document.getElementById('buyTotal').value = (price * amount).toFixed(2);
+      // ========================================
+      // BANK DEPOSIT FUNCTIONS WITH MODERN LOADING
+      // ========================================
+
+      // Currency type change handler
+      document.getElementById('depositCurrencyType').addEventListener('change', function() {
+        const type = this.value;
+        console.log('💱 Currency type changed to:', type);
+        if (type === 'VND') {
+          document.getElementById('vndDepositSection').style.display = 'block';
+          document.getElementById('usdtDepositSection').style.display = 'none';
+        } else {
+          document.getElementById('vndDepositSection').style.display = 'none';
+          document.getElementById('usdtDepositSection').style.display = 'block';
+        }
       });
 
-      document.getElementById('sellAmount').addEventListener('input', function() {
-        const price = parseFloat(document.getElementById('sellPrice').value) || 0;
-        const amount = parseFloat(this.value) || 0;
-        document.getElementById('sellTotal').value = (price * amount).toFixed(2);
+      // Open bank deposit modal
+      window.openBankDepositModal = function() {
+        console.log('🏦 Opening deposit modal...');
+        
+        // Reset form
+        document.getElementById('depositCurrencyType').value = 'VND';
+        document.getElementById('bankSelect').value = '';
+        document.getElementById('depositAmountVND').value = '';
+        document.getElementById('accountNumber').value = '';
+        document.getElementById('accountName').value = '';
+        document.getElementById('depositAmountUSDT').value = '';
+        document.getElementById('senderWallet').value = '';
+        document.getElementById('networkSelect').value = 'TRC20';
+        
+        // Show sections
+        document.getElementById('vndDepositSection').style.display = 'block';
+        document.getElementById('usdtDepositSection').style.display = 'none';
+        
+        // Show selection step, hide others
+        document.getElementById('depositSelectionStep').style.display = 'block';
+        document.getElementById('loadingStep').style.display = 'none';
+        document.getElementById('successStep').style.display = 'none';
+        
+        // Open modal
+        try {
+          const modal = new bootstrap.Modal(document.getElementById('bankDepositModal'));
+          modal.show();
+          console.log('✅ Modal opened successfully');
+        } catch (error) {
+          console.error('❌ Error opening modal:', error);
+          alert('Lỗi mở modal: ' + error.message);
+        }
+      };
+
+      // Process deposit with modern loading
+      window.processDeposit = async function() {
+        console.log('🔄 Processing deposit...');
+        
+        const currencyType = document.getElementById('depositCurrencyType').value;
+        
+        let amount, source, validation;
+        
+        if (currencyType === 'VND') {
+          const bank = document.getElementById('bankSelect').value;
+          amount = document.getElementById('depositAmountVND').value;
+          const accountNumber = document.getElementById('accountNumber').value;
+          const accountName = document.getElementById('accountName').value;
+          
+          // Validation
+          if (!bank) {
+            alert('⚠️ Vui lòng chọn ngân hàng!');
+            return;
+          }
+          if (!amount || parseFloat(amount) < 50000) {
+            alert('⚠️ Số tiền nhận tối thiểu là 50,000 VND!');
+            return;
+          }
+          if (!accountNumber || accountNumber.length < 6) {
+            alert('⚠️ Số tài khoản không hợp lệ!');
+            return;
+          }
+          if (!accountName || accountName.trim().length < 3) {
+            alert('⚠️ Tên chủ tài khoản không hợp lệ!');
+            return;
+          }
+          
+          const bankNames = {
+            'vcb': 'Vietcombank', 'tcb': 'Techcombank', 'mb': 'MB Bank',
+            'acb': 'ACB', 'vib': 'VIB', 'bidv': 'BIDV',
+            'agribank': 'Agribank', 'tpbank': 'TPBank',
+            'sacombank': 'Sacombank', 'vietinbank': 'VietinBank'
+          };
+          source = bankNames[bank];
+          validation = { bank, accountNumber, accountName };
+          
+        } else {
+          const network = document.getElementById('networkSelect').value;
+          amount = document.getElementById('depositAmountUSDT').value;
+          const senderWallet = document.getElementById('senderWallet').value;
+          
+          // Validation
+          if (!amount || parseFloat(amount) < 10) {
+            alert('⚠️ Số tiền nhận tối thiểu là 10 USDT!');
+            return;
+          }
+          if (!senderWallet || senderWallet.length < 20) {
+            alert('⚠️ Địa chỉ ví không hợp lệ!');
+            return;
+          }
+          
+          source = `${network} Network`;
+          validation = { network, senderWallet };
+        }
+
+        console.log('✅ Validation passed, starting loading...');
+
+        // Hide selection, show loading
+        document.getElementById('depositSelectionStep').style.display = 'none';
+        document.getElementById('loadingStep').style.display = 'block';
+
+        // Reset loading steps
+        document.getElementById('progressPercentage').textContent = '0%';
+        document.getElementById('progressCircle').style.strokeDashoffset = '339.292';
+        document.getElementById('loadingMessage').textContent = 'Đang kết nối với hệ thống thanh toán...';
+        
+        // Reset step icons
+        ['step1', 'step2', 'step3', 'step4'].forEach((stepId, index) => {
+          const stepEl = document.getElementById(stepId);
+          stepEl.style.opacity = index === 0 ? '1' : '0.5';
+          const icon = stepEl.querySelector('i');
+          if (index === 0) {
+            icon.className = 'fas fa-circle-notch fa-spin text-warning';
+          } else {
+            icon.className = 'fas fa-circle text-muted';
+          }
+        });
+
+        // Animate loading with steps
+        const messages = [
+          'Đang xác thực thông tin...',
+          'Kết nối với blockchain...',
+          'Xác nhận giao dịch...',
+          'Hoàn tất xử lý...'
+        ];
+        
+        let currentStep = 0;
+        let progress = 0;
+        
+        const updateProgress = () => {
+          progress += Math.random() * 15 + 5;
+          if (progress > 95) progress = 95;
+          
+          // Update circular progress
+          const circumference = 339.292;
+          const offset = circumference - (progress / 100) * circumference;
+          document.getElementById('progressCircle').style.strokeDashoffset = offset;
+          document.getElementById('progressPercentage').textContent = Math.floor(progress) + '%';
+          
+          // Update step icons
+          if (progress > 25 && currentStep < 1) {
+            currentStep = 1;
+            updateStepIcon(1);
+            document.getElementById('loadingMessage').textContent = messages[1];
+          } else if (progress > 50 && currentStep < 2) {
+            currentStep = 2;
+            updateStepIcon(2);
+            document.getElementById('loadingMessage').textContent = messages[2];
+          } else if (progress > 75 && currentStep < 3) {
+            currentStep = 3;
+            updateStepIcon(3);
+            document.getElementById('loadingMessage').textContent = messages[3];
+          }
+        };
+        
+        const updateStepIcon = (step) => {
+          const stepEl = document.getElementById(`step${step}`);
+          stepEl.style.opacity = '1';
+          stepEl.querySelector('i').className = 'fas fa-check-circle text-success';
+          
+          if (step < 4) {
+            const nextStep = document.getElementById(`step${step + 1}`);
+            nextStep.style.opacity = '1';
+            nextStep.querySelector('i').className = 'fas fa-circle-notch fa-spin text-warning';
+          }
+        };
+
+        const progressInterval = setInterval(updateProgress, 200);
+
+        // Simulate processing (2-4 seconds)
+        const processingTime = 2000 + Math.random() * 2000;
+        
+        setTimeout(() => {
+          clearInterval(progressInterval);
+          
+          // Complete progress
+          document.getElementById('progressCircle').style.strokeDashoffset = '0';
+          document.getElementById('progressPercentage').textContent = '100%';
+          updateStepIcon(4);
+
+          setTimeout(() => {
+            // Generate transaction
+            const txId = 'TXN' + Date.now() + Math.floor(Math.random() * 10000);
+            
+            const transaction = {
+              id: txId,
+              type: currencyType === 'VND' ? 'bank_deposit' : 'crypto_deposit',
+              currency: currencyType,
+              amount: parseFloat(amount),
+              source: source,
+              ...validation,
+              timestamp: Date.now(),
+              status: 'completed'
+            };
+
+            const history = JSON.parse(localStorage.getItem('transactionHistory') || '[]');
+            history.push(transaction);
+            localStorage.setItem('transactionHistory', JSON.stringify(history));
+
+            // Update balance
+            const currentBalance = parseFloat(localStorage.getItem('usdtBalance') || '10000');
+            let newBalance;
+            
+            if (currencyType === 'VND') {
+              newBalance = currentBalance + (parseFloat(amount) / 25000);
+            } else {
+              newBalance = currentBalance + parseFloat(amount);
+            }
+            
+            localStorage.setItem('usdtBalance', newBalance.toFixed(4));
+
+            // Show success
+            document.getElementById('loadingStep').style.display = 'none';
+            document.getElementById('successStep').style.display = 'block';
+            
+            // Fill success info
+            document.getElementById('transactionId').textContent = txId;
+            document.getElementById('depositCurrency').textContent = currencyType;
+            document.getElementById('depositedAmount').textContent = 
+              currencyType === 'VND' 
+                ? parseFloat(amount).toLocaleString() + ' VND'
+                : parseFloat(amount).toFixed(2) + ' USDT';
+            document.getElementById('depositSource').textContent = source;
+            document.getElementById('depositTime').textContent = new Date().toLocaleString('vi-VN');
+
+            // Reload histories
+            loadOrderHistory();
+            loadTradeHistory();
+            
+            // Update balance display
+            const buyCurrency = document.getElementById('buyCurrency').value;
+            if (buyCurrency === 'USDT') {
+              document.getElementById('balance').textContent = newBalance.toFixed(4);
+            } else {
+              document.getElementById('balance').textContent = (newBalance * 25000).toLocaleString();
+            }
+
+            console.log('✅ Deposit completed:', transaction);
+          }, 500);
+        }, processingTime);
+      };
+
+      // ========================================
+      // CURRENCY SELECTION HANDLERS
+      // ========================================
+      
+      const buyCurrencySelect = document.getElementById('buyCurrency');
+      const sellCurrencySelect = document.getElementById('sellCurrency');
+      
+      // Buy currency change
+      buyCurrencySelect.addEventListener('change', function() {
+        const currency = this.value;
+        const price = parseFloat(buyPriceInput.value) || 0;
+        
+        if (currency === 'VND') {
+          // Convert to VND
+          const priceVND = (price * USD_TO_VND_RATE).toFixed(0);
+          buyPriceInput.value = priceVND;
+          document.getElementById('buyPriceCurrency').textContent = 'VND';
+          document.getElementById('buyTotalCurrency').textContent = 'VND';
+          document.getElementById('buyExchangeRate').textContent = `Tỷ giá: 1 USD = ${USD_TO_VND_RATE.toLocaleString()} VND`;
+          
+          // Update balance display (simulate VND balance)
+          const usdtBalance = parseFloat(localStorage.getItem('usdtBalance') || '10000');
+          const vndBalance = (usdtBalance * USD_TO_VND_RATE).toFixed(0);
+          document.getElementById('balance').textContent = parseFloat(vndBalance).toLocaleString();
+          document.getElementById('balanceCurrency').textContent = 'VND';
+        } else {
+          // Convert to USDT
+          const priceUSDT = (price / USD_TO_VND_RATE).toFixed(2);
+          buyPriceInput.value = priceUSDT;
+          document.getElementById('buyPriceCurrency').textContent = 'USDT';
+          document.getElementById('buyTotalCurrency').textContent = 'USDT';
+          document.getElementById('buyExchangeRate').textContent = `Tỷ giá: 1 USD = ${USD_TO_VND_RATE.toLocaleString()} VND`;
+          
+          // Update balance display
+          const usdtBalance = parseFloat(localStorage.getItem('usdtBalance') || '10000');
+          document.getElementById('balance').textContent = usdtBalance.toFixed(4);
+          document.getElementById('balanceCurrency').textContent = 'USDT';
+        }
+        
+        // Recalculate total
+        updateBuyTotal();
+      });
+      
+      // Sell currency change
+      sellCurrencySelect.addEventListener('change', function() {
+        const currency = this.value;
+        const price = parseFloat(sellPriceInput.value) || 0;
+        
+        if (currency === 'VND') {
+          // Convert to VND
+          const priceVND = (price * USD_TO_VND_RATE).toFixed(0);
+          sellPriceInput.value = priceVND;
+          document.getElementById('sellPriceCurrency').textContent = 'VND';
+          document.getElementById('sellTotalCurrency').textContent = 'VND';
+          document.getElementById('sellExchangeRate').textContent = `Tỷ giá: 1 USD = ${USD_TO_VND_RATE.toLocaleString()} VND`;
+        } else {
+          // Convert to USDT
+          const priceUSDT = (price / USD_TO_VND_RATE).toFixed(2);
+          sellPriceInput.value = priceUSDT;
+          document.getElementById('sellPriceCurrency').textContent = 'USDT';
+          document.getElementById('sellTotalCurrency').textContent = 'USDT';
+          document.getElementById('sellExchangeRate').textContent = `Tỷ giá: 1 USD = ${USD_TO_VND_RATE.toLocaleString()} VND`;
+        }
+        
+        // Recalculate total
+        updateSellTotal();
       });
 
-      // Update deposit/withdraw functions
+      // ========================================
+      // FIX: AUTO-CALCULATE TOTAL - BUY TAB
+      // ========================================
+      
+      const buyAmountInput = document.getElementById('buyAmount');
+      const buyPriceInput = document.getElementById('buyPrice');
+      const buyTotalInput = document.getElementById('buyTotal');
+      const buyPercentageSlider = document.getElementById('buyPercentage');
+      
+      function updateBuyTotal() {
+        const price = parseFloat(buyPriceInput.value) || 0;
+        const amount = parseFloat(buyAmountInput.value) || 0;
+        const currency = buyCurrencySelect.value;
+        
+        const total = (price * amount).toFixed(currency === 'VND' ? 0 : 2);
+        buyTotalInput.value = total;
+        
+        console.log(`💰 Buy Total: ${amount} ETH × ${price} ${currency} = ${total} ${currency}`);
+      }
+      
+      // Update total when amount changes
+      buyAmountInput.addEventListener('input', updateBuyTotal);
+      
+      // Update total when price changes
+      buyPriceInput.addEventListener('input', updateBuyTotal);
+
+      // Slider for BUY
+      buyPercentageSlider.addEventListener('input', function() {
+        const percentage = parseFloat(this.value);
+        const balanceText = document.getElementById('balance').textContent.replace(/,/g, '');
+        const balance = parseFloat(balanceText) || 0;
+        const price = parseFloat(buyPriceInput.value) || 0;
+        
+        if (price > 0 && balance > 0) {
+          const maxAmount = balance / price;
+          const amount = (maxAmount * percentage / 100).toFixed(8);
+          buyAmountInput.value = amount;
+          updateBuyTotal();
+          
+          console.log(`📊 Buy Slider: ${percentage}% → ${amount} ETH`);
+        }
+      });
+
+      // ========================================
+      // FIX: AUTO-CALCULATE TOTAL - SELL TAB
+      // ========================================
+      
+      const sellAmountInput = document.getElementById('sellAmount');
+      const sellPriceInput = document.getElementById('sellPrice');
+      const sellTotalInput = document.getElementById('sellTotal');
+      const sellPercentageSlider = document.getElementById('sellPercentage');
+      
+      function updateSellTotal() {
+        const price = parseFloat(sellPriceInput.value) || 0;
+        const amount = parseFloat(sellAmountInput.value) || 0;
+        const currency = sellCurrencySelect.value;
+        
+        const total = (price * amount).toFixed(currency === 'VND' ? 0 : 2);
+        sellTotalInput.value = total;
+        
+        console.log(`💰 Sell Total: ${amount} ETH × ${price} ${currency} = ${total} ${currency}`);
+      }
+      
+      // Update total when amount changes
+      sellAmountInput.addEventListener('input', updateSellTotal);
+      
+      // Update total when price changes
+      sellPriceInput.addEventListener('input', updateSellTotal);
+
+      // Slider for SELL
+      sellPercentageSlider.addEventListener('input', function() {
+        const percentage = parseFloat(this.value);
+        const balance = parseFloat(document.getElementById('balanceSell').textContent) || 0;
+        const amount = (balance * percentage / 100).toFixed(8);
+        
+        sellAmountInput.value = amount;
+        updateSellTotal();
+        
+        console.log(`📊 Sell Slider: ${percentage}% → ${amount} ETH`);
+      });
+
+      // ========================================
+      // UPDATE: deposit/withdraw functions with currency
+      // ========================================
+      
       window.depositETH = async function() {
-        const amount = document.getElementById('buyAmount').value;
+        const amount = buyAmountInput.value;
+        const currency = buyCurrencySelect.value;
         
         if (!amount || parseFloat(amount) <= 0) {
           alert('⚠️ Vui lòng nhập số lượng ETH hợp lệ');
           return;
         }
         
-        if (!web3 || !userAccount) {
-          alert('⚠️ Vui lòng kết nối MetaMask trước!');
-          await connectWallet();
+        const price = parseFloat(buyPriceInput.value) || 0;
+        const actualPrice = price * (1 + (Math.random() - 0.5) * 0.002);
+        const total = (actualPrice * parseFloat(amount)).toFixed(currency === 'VND' ? 0 : 2);
+        
+        // Get balance and check
+        const balanceText = document.getElementById('balance').textContent.replace(/,/g, '');
+        const currentBalance = parseFloat(balanceText) || 0;
+        const totalCost = parseFloat(total);
+        
+        if (totalCost > currentBalance) {
+          alert(`❌ Số dư không đủ!\n\nSố dư: ${currentBalance.toLocaleString()} ${currency}\nCần: ${totalCost.toLocaleString()} ${currency}`);
           return;
         }
         
-        const price = parseFloat(document.getElementById('buyPrice').value) || 0;
-        // Add small random variation to make it look more natural
-        const actualPrice = price * (1 + (Math.random() - 0.5) * 0.002); // 0.2% variation
-        const total = (actualPrice * parseFloat(amount)).toFixed(2);
+        const confirmMsg = currency === 'VND' 
+          ? `Xác nhận mua ${amount} ETH?\n\n💵 Nguồn: VND (Ngân hàng)\n📊 Giá: ${parseFloat(actualPrice).toLocaleString()} VND/ETH\n💰 Tổng: ${parseFloat(total).toLocaleString()} VND\n\n🔄 Tỷ giá: 1 USD = ${USD_TO_VND_RATE.toLocaleString()} VND`
+          : `Xác nhận mua ${amount} ETH?\n\n💵 Nguồn: USDT (Crypto)\n📊 Giá: $${actualPrice.toFixed(2)}/ETH\n💰 Tổng: $${parseFloat(total).toLocaleString()} USDT`;
         
-        if (confirm(`Xác nhận mua ${amount} ETH?\n\nGiá thực tế: $${actualPrice.toFixed(2)}/ETH\nTổng: $${parseFloat(total).toLocaleString()} USDT`)) {
+        if (confirm(confirmMsg)) {
           const transaction = {
             type: 'deposit',
             amount: amount,
-            price: actualPrice.toFixed(2),
+            price: actualPrice.toFixed(currency === 'VND' ? 0 : 2),
             total: total,
+            currency: currency,
             pair: document.querySelector('.market-item.active').dataset.pair,
             timestamp: Date.now(),
-            txHash: `0x${Math.random().toString(16).substr(2, 64)}` // Generate random tx hash
+            txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+            status: 'completed'
           };
           
           const history = JSON.parse(localStorage.getItem('transactionHistory') || '[]');
           history.push(transaction);
           localStorage.setItem('transactionHistory', JSON.stringify(history));
           
+          // Update balance
+          const newBalance = currentBalance - totalCost;
+          if (currency === 'VND') {
+            const usdtBalance = newBalance / USD_TO_VND_RATE;
+            localStorage.setItem('usdtBalance', usdtBalance.toFixed(4));
+            document.getElementById('balance').textContent = newBalance.toLocaleString();
+          } else {
+            localStorage.setItem('usdtBalance', newBalance.toFixed(4));
+            document.getElementById('balance').textContent = newBalance.toFixed(4);
+          }
+          
           loadOrderHistory();
           loadTradeHistory();
           
-          alert(`✅ Đã mua ${amount} ETH thành công!\n\nGiá: $${actualPrice.toFixed(2)}\nTổng: $${parseFloat(total).toLocaleString()}\n\nTx: ${transaction.txHash.substring(0, 20)}...`);
+          const successMsg = currency === 'VND'
+            ? `✅ Đã mua ${amount} ETH thành công!\n\n💵 Nguồn: VND\n📊 Giá: ${parseFloat(actualPrice).toLocaleString()} VND\n💰 Tổng: ${parseFloat(total).toLocaleString()} VND\n\n🔗 Tx: ${transaction.txHash.substring(0, 20)}...`
+            : `✅ Đã mua ${amount} ETH thành công!\n\n💵 Nguồn: USDT\n📊 Giá: $${actualPrice.toFixed(2)}\n💰 Tổng: $${parseFloat(total).toLocaleString()}\n\n🔗 Tx: ${transaction.txHash.substring(0, 20)}...`;
           
-          document.getElementById('buyAmount').value = '';
-          document.getElementById('buyTotal').value = '';
+          alert(successMsg);
+          
+          // Reset form
+          buyAmountInput.value = '';
+          buyTotalInput.value = '';
+          buyPercentageSlider.value = 0;
         }
       };
 
       window.withdrawETH = async function() {
-        const amount = document.getElementById('sellAmount').value;
+        const amount = sellAmountInput.value;
+        const currency = sellCurrencySelect.value;
         
         if (!amount || parseFloat(amount) <= 0) {
           alert('⚠️ Vui lòng nhập số lượng ETH hợp lệ');
-          return;
-        }
-        
-        if (!web3 || !userAccount) {
-          alert('⚠️ Vui lòng kết nối MetaMask trước!');
-          await connectWallet();
           return;
         }
         
         const currentBalance = parseFloat(document.getElementById('balanceSell').textContent);
         if (parseFloat(amount) > currentBalance) {
-          alert(`❌ Số dư không đủ!\n\nSố dư: ${currentBalance} ETH\nMuốn bán: ${amount} ETH`);
+          alert(`❌ Số dư ETH không đủ!\n\nSố dư: ${currentBalance} ETH\nMuốn bán: ${amount} ETH`);
           return;
         }
         
-        const price = parseFloat(document.getElementById('sellPrice').value) || 0;
-        // Add small random variation
-        const actualPrice = price * (1 + (Math.random() - 0.5) * 0.002); // 0.2% variation
-        const total = (actualPrice * parseFloat(amount)).toFixed(2);
+        const price = parseFloat(sellPriceInput.value) || 0;
+        const actualPrice = price * (1 + (Math.random() - 0.5) * 0.002);
+        const total = (actualPrice * parseFloat(amount)).toFixed(currency === 'VND' ? 0 : 2);
         
-        if (confirm(`Xác nhận bán ${amount} ETH?\n\nGiá thực tế: $${actualPrice.toFixed(2)}/ETH\nTổng: $${parseFloat(total).toLocaleString()} USDT`)) {
+        const confirmMsg = currency === 'VND'
+          ? `Xác nhận bán ${amount} ETH?\n\n💵 Nhận vào: VND (Ngân hàng)\n📊 Giá: ${parseFloat(actualPrice).toLocaleString()} VND/ETH\n💰 Tổng: ${parseFloat(total).toLocaleString()} VND\n\n🔄 Tỷ giá: 1 USD = ${USD_TO_VND_RATE.toLocaleString()} VND`
+          : `Xác nhận bán ${amount} ETH?\n\n💵 Nhận vào: USDT (Crypto)\n📊 Giá: $${actualPrice.toFixed(2)}/ETH\n💰 Tổng: $${parseFloat(total).toLocaleString()} USDT`;
+        
+        if (confirm(confirmMsg)) {
           const transaction = {
             type: 'withdraw',
             amount: amount,
-            price: actualPrice.toFixed(2),
+            price: actualPrice.toFixed(currency === 'VND' ? 0 : 2),
             total: total,
+            currency: currency,
             pair: document.querySelector('.market-item.active').dataset.pair,
             timestamp: Date.now(),
-            txHash: `0x${Math.random().toString(16).substr(2, 64)}`
+            txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+            status: 'completed'
           };
           
           const history = JSON.parse(localStorage.getItem('transactionHistory') || '[]');
           history.push(transaction);
           localStorage.setItem('transactionHistory', JSON.stringify(history));
           
+          // Update balance
+          const balanceText = document.getElementById('balance').textContent.replace(/,/g, '');
+          const currentUSDTBalance = parseFloat(balanceText) || 0;
+          const receivedAmount = parseFloat(total);
+          
+          if (currency === 'VND') {
+            const newBalanceVND = (currentUSDTBalance * USD_TO_VND_RATE) + receivedAmount;
+            const newBalanceUSDT = newBalanceVND / USD_TO_VND_RATE;
+            localStorage.setItem('usdtBalance', newBalanceUSDT.toFixed(4));
+            
+            // Update if showing VND
+            if (buyCurrencySelect.value === 'VND') {
+              document.getElementById('balance').textContent = newBalanceVND.toLocaleString();
+            } else {
+              document.getElementById('balance').textContent = newBalanceUSDT.toFixed(4);
+            }
+          } else {
+            const newBalance = currentUSDTBalance + receivedAmount;
+            localStorage.setItem('usdtBalance', newBalance.toFixed(4));
+            document.getElementById('balance').textContent = newBalance.toFixed(4);
+          }
+          
           loadOrderHistory();
           loadTradeHistory();
           
-          alert(`✅ Đã bán ${amount} ETH thành công!\n\nGiá: $${actualPrice.toFixed(2)}\nTổng: $${parseFloat(total).toLocaleString()}\n\nTx: ${transaction.txHash.substring(0, 20)}...`);
+          const successMsg = currency === 'VND'
+            ? `✅ Đã bán ${amount} ETH thành công!\n\n💵 Nhận vào: VND\n📊 Giá: ${parseFloat(actualPrice).toLocaleString()} VND\n💰 Tổng: ${parseFloat(total).toLocaleString()} VND\n\n🔗 Tx: ${transaction.txHash.substring(0, 20)}...`
+            : `✅ Đã bán ${amount} ETH thành công!\n\n💵 Nhận vào: USDT\n📊 Giá: $${actualPrice.toFixed(2)}\n💰 Tổng: $${parseFloat(total).toLocaleString()}\n\n🔗 Tx: ${transaction.txHash.substring(0, 20)}...`;
           
-          document.getElementById('sellAmount').value = '';
-          document.getElementById('sellTotal').value = '';
+          alert(successMsg);
+          
+          // Reset form
+          sellAmountInput.value = '';
+          sellTotalInput.value = '';
+          sellPercentageSlider.value = 0;
         }
       };
 
-      // Load order history from localStorage
+      // Load order history with currency display
       function loadOrderHistory() {
-        // Load from localStorage (saved by app.js)
         const history = JSON.parse(localStorage.getItem('transactionHistory') || '[]');
-        const historyTable = document.querySelector('#orderHistory tbody');
+        const tbody = document.querySelector('#orderHistory tbody');
+        
+        if (!tbody) return;
         
         if (history.length === 0) {
-          historyTable.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Chưa có lịch sử lệnh</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Chưa có giao dịch</td></tr>';
           return;
         }
         
-        historyTable.innerHTML = history.slice(-20).reverse().map(tx => {
+        tbody.innerHTML = history.map(tx => {
           const date = new Date(tx.timestamp);
-          const time = date.toLocaleString('vi-VN');
-          const isBuy = tx.type === 'deposit' || tx.type === 'Nạp';
-          const side = isBuy ? 'Mua' : 'Bán';
-          const sideClass = isBuy ? 'text-success' : 'text-danger';
-          const pair = tx.pair || 'ETH/USDT';
+          const timeStr = date.toLocaleString('vi-VN');
+          const statusBadge = '<span class="badge bg-success">Hoàn thành</span>';
+          
+          if (tx.type === 'bank_deposit') {
+            return `
+              <tr>
+                <td>${timeStr}</td>
+                <td><span class="badge bg-info">Nhận tiền</span></td>
+                <td>${tx.bank}</td>
+                <td>-</td>
+                <td>-</td>
+                <td>${tx.amount.toLocaleString()} VND</td>
+                <td>${tx.amount.toLocaleString()} VND</td>
+                <td>${statusBadge}</td>
+              </tr>
+            `;
+          }
+          
+          const currencySymbol = tx.currency === 'VND' ? '' : '$';
+          const currencyText = tx.currency === 'VND' ? ' VND' : ' USDT';
+          const priceFormatted = tx.currency === 'VND' 
+            ? parseFloat(tx.price).toLocaleString() 
+            : parseFloat(tx.price).toFixed(2);
+          const totalFormatted = tx.currency === 'VND'
+            ? parseFloat(tx.total).toLocaleString()
+            : parseFloat(tx.total).toLocaleString();
           
           return `
             <tr>
-              <td>${time}</td>
-              <td><strong>${pair}</strong></td>
-              <td>Limit</td>
-              <td class="${sideClass}">${side}</td>
-              <td>$${parseFloat(tx.price || 0).toLocaleString()}</td>
-              <td>${parseFloat(tx.amount || 0).toFixed(4)} ETH</td>
-              <td>$${parseFloat(tx.total || 0).toLocaleString()}</td>
-              <td><span class="badge bg-success">Đã khớp</span></td>
+              <td>${timeStr}</td>
+              <td>${tx.pair || 'ETH/USDT'}</td>
+              <td>${tx.currency || 'USDT'}</td>
+              <td class="text-${tx.type === 'deposit' ? 'success' : 'danger'}">${tx.type === 'deposit' ? 'Mua' : 'Bán'}</td>
+              <td>${currencySymbol}${priceFormatted}${currencyText}</td>
+              <td>${tx.amount} ETH</td>
+              <td>${currencySymbol}${totalFormatted}${currencyText}</td>
+              <td>${statusBadge}</td>
             </tr>
           `;
-        }).join('');
+        }).reverse().join('');
       }
 
-      // Load trade history
+      // Load trade history with currency
       function loadTradeHistory() {
         const history = JSON.parse(localStorage.getItem('transactionHistory') || '[]');
-        const tradeTable = document.querySelector('#tradeHistory tbody');
+        const tbody = document.querySelector('#tradeHistory tbody');
         
-        if (history.length === 0) {
-          tradeTable.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Chưa có giao dịch</td></tr>';
+        if (!tbody) return;
+        
+        const trades = history.filter(tx => tx.type === 'deposit' || tx.type === 'withdraw');
+        
+        if (trades.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Chưa có giao dịch</td></tr>';
           return;
         }
         
-        tradeTable.innerHTML = history.slice(-20).reverse().map(tx => {
+        tbody.innerHTML = trades.map(tx => {
           const date = new Date(tx.timestamp);
-          const time = date.toLocaleString('vi-VN');
-          const isBuy = tx.type === 'deposit' || tx.type === 'Nạp';
-          const side = isBuy ? 'Mua' : 'Bán';
-          const sideClass = isBuy ? 'text-success' : 'text-danger';
-          const pair = tx.pair || 'ETH/USDT';
-          const amount = parseFloat(tx.amount || 0);
-          const price = parseFloat(tx.price || 0);
-          const total = parseFloat(tx.total || price * amount);
-          const fee = total * 0.001; // 0.1% fee
+          const timeStr = date.toLocaleString('vi-VN');
+          const fee = (parseFloat(tx.total) * 0.001).toFixed(tx.currency === 'VND' ? 0 : 2);
+          
+          const currencySymbol = tx.currency === 'VND' ? '' : '$';
+          const currencyText = tx.currency === 'VND' ? ' VND' : '';
           
           return `
             <tr>
-              <td>${time}</td>
-              <td><strong>${pair}</strong></td>
-              <td class="${sideClass}">${side}</td>
-              <td>$${price.toLocaleString()}</td>
-              <td>${amount.toFixed(4)} ETH</td>
-              <td>${fee.toFixed(2)} USDT</td>
-              <td>$${total.toLocaleString()}</td>
+              <td>${timeStr}</td>
+              <td>${tx.pair || 'ETH/USDT'}</td>
+              <td class="text-${tx.type === 'deposit' ? 'success' : 'danger'}">${tx.type === 'deposit' ? 'Mua' : 'Bán'}</td>
+              <td>${currencySymbol}${parseFloat(tx.price).toLocaleString()}${currencyText}</td>
+              <td>${tx.amount} ETH</td>
+              <td>${currencySymbol}${fee}${currencyText}</td>
+              <td>${currencySymbol}${parseFloat(tx.total).toLocaleString()}${currencyText}</td>
             </tr>
           `;
-        }).join('');
+        }).reverse().join('');
       }
 
-      // Load open orders (simulated)
-      function loadOpenOrders() {
-        const openOrders = JSON.parse(localStorage.getItem('openOrders') || '[]');
-        const openOrdersTable = document.querySelector('#openOrders tbody');
-        
-        if (openOrders.length === 0) {
-          openOrdersTable.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">Không có lệnh mở</td></tr>';
-          return;
-        }
-        
-        openOrdersTable.innerHTML = openOrders.map((order, index) => {
-          const date = new Date(order.timestamp);
-          const time = date.toLocaleString('vi-VN');
-          const isBuy = order.type === 'buy';
-          const side = isBuy ? 'Mua' : 'Bán';
-          const sideClass = isBuy ? 'text-success' : 'text-danger';
-          const filled = parseFloat(order.filled || 0);
-          const amount = parseFloat(order.amount || 0);
-          const filledPercent = ((filled / amount) * 100).toFixed(0);
-          
-          return `
-            <tr>
-              <td>${time}</td>
-              <td><strong>${order.pair}</strong></td>
-              <td>Limit</td>
-              <td class="${sideClass}">${side}</td>
-              <td>$${parseFloat(order.price).toLocaleString()}</td>
-              <td>${amount.toFixed(4)} ETH</td>
-              <td>${filled.toFixed(4)} (${filledPercent}%)</td>
-              <td>$${(order.price * amount).toLocaleString()}</td>
-              <td>
-                <button class="btn btn-sm btn-danger" onclick="cancelOrder(${index})">
-                  <i class="fas fa-times"></i> Hủy
-                </button>
-              </td>
-            </tr>
-          `;
-        }).join('');
+      // Initialize balances
+      if (!localStorage.getItem('usdtBalance')) {
+        localStorage.setItem('usdtBalance', '10000'); // Default 10,000 USDT
       }
+      
+      const usdtBalance = parseFloat(localStorage.getItem('usdtBalance'));
+      document.getElementById('balance').textContent = usdtBalance.toFixed(4);
+      document.getElementById('balanceCurrency').textContent = 'USDT';
 
-      // Cancel order function
-      window.cancelOrder = function(index) {
-        const openOrders = JSON.parse(localStorage.getItem('openOrders') || '[]');
-        const canceledOrder = openOrders[index];
-        
-        if (confirm(`Bạn có chắc muốn hủy lệnh ${canceledOrder.type === 'MUA' ? 'MUA' : 'BÁN'} ${canceledOrder.amount} ETH?`)) {
-          openOrders.splice(index, 1);
-          localStorage.setItem('openOrders', JSON.stringify(openOrders));
-          loadOpenOrders();
-          alert('✅ Đã hủy lệnh thành công');
-        }
-      };
+      // Load real price for default coin
+      loadRealPrice();
 
-      // Load recent trades (simulated real-time)
-      function loadRecentTrades() {
-        const recentTradesTable = document.getElementById('recentTrades');
-        const currentPrice = parseFloat(document.getElementById('currentPrice').textContent.replace(/[$,]/g, ''));
-        
-        // Generate random recent trades
-        const trades = [];
-        for (let i = 0; i < 15; i++) {
-          const priceVariation = (Math.random() - 0.5) * 10;
-          const price = currentPrice + priceVariation;
-          const amount = (Math.random() * 2).toFixed(4);
-          const isBuy = Math.random() > 0.5;
-          const now = new Date();
-          now.setSeconds(now.getSeconds() - i * 3);
-          
-          trades.push({
-            price: price.toFixed(2),
-            amount: amount,
-            time: `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`,
-            isBuy: isBuy
-          });
-        }
-        
-        recentTradesTable.innerHTML = trades.map(trade => `
-          <tr>
-            <td class="${trade.isBuy ? 'text-success' : 'text-danger'}">${parseFloat(trade.price).toLocaleString()}</td>
-            <td class="text-end">${trade.amount}</td>
-            <td class="text-end text-muted">${trade.time}</td>
-          </tr>
-        `).join('');
-      }
+      // Periodically refresh price and chart data
+      setInterval(() => {
+        loadRealPrice();
+        loadChartDataForCoin(currentCoinId, currentTimeframe);
+      }, 30000);
 
-      // Generate random number with variation
-      function randomAmount(min, max, decimals = 4) {
-        const amount = Math.random() * (max - min) + min;
-        return amount.toFixed(decimals);
-      }
-
-      function randomPrice(basePrice, variationPercent = 0.5) {
-        const variation = basePrice * (variationPercent / 100);
-        const randomVar = (Math.random() - 0.5) * 2 * variation;
-        return basePrice + randomVar;
-      }
-
-      // Load recent trades with random data
-      function loadRecentTrades() {
-        const recentTradesTable = document.getElementById('recentTrades');
-        const currentPrice = parseFloat(document.getElementById('currentPrice').textContent.replace(/[$,]/g, ''));
-        
-        // Generate random recent trades with natural variation
-        const trades = [];
-        for (let i = 0; i < 15; i++) {
-          const priceVar = randomPrice(currentPrice, 0.3); // 0.3% variation
-          const amount = randomAmount(0.0123, 2.8765, 4);
-          const isBuy = Math.random() > 0.5;
-          const now = new Date();
-          now.setSeconds(now.getSeconds() - i * Math.floor(Math.random() * 8 + 2)); // Random interval
-          
-         
-          
-          trades.push({
-            price: priceVar.toFixed(2),
-            amount: amount,
-            time: `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`,
-            isBuy: isBuy
-          });
-        }
-        
-        recentTradesTable.innerHTML = trades.map(trade => `
-          <tr>
-            <td class="${trade.isBuy ? 'text-success' : 'text-danger'}">${parseFloat(trade.price).toLocaleString()}</td>
-            <td class="text-end">${trade.amount}</td>
-            <td class="text-end text-muted">${trade.time}</td>
-          </tr>
-        `).join('');
-      }
-
-      // Update order book with random natural data
-      function updateOrderBook() {
-        const currentPrice = parseFloat(document.getElementById('currentPrice').textContent.replace(/[$,]/g, ''));
-        const sellOrdersTable = document.getElementById('sellOrders');
-        const buyOrdersTable = document.getElementById('buyOrders');
-        
-        // Generate sell orders (above current price) with random amounts
-        const sellOrders = [];
-        for (let i = 3; i >= 1; i--) {
-          const priceOffset = Math.random() * 5 + i * 1.2; // Random offset
-          const price = currentPrice + priceOffset;
-          const amount = randomAmount(0.1234, 8.9876, 4);
-          const total = (price * parseFloat(amount)).toFixed(2);
-          sellOrders.push({ price, amount, total });
-        }
-        
-        // Sort by price descending
-        sellOrders.sort((a, b) => b.price - a.price);
-        
-        sellOrdersTable.innerHTML = sellOrders.map(order => `
-          <tr class="sell-order">
-            <td class="text-danger">${order.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-            <td class="text-end">${order.amount}</td>
-            <td class="text-end">${parseFloat(order.total).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-          </tr>
-        `).join('');
-        
-        // Generate buy orders (below current price) with random amounts
-        const buyOrders = [];
-        for (let i = 1; i <= 3; i++) {
-          const priceOffset = Math.random() * 5 + i * 1.2; // Random offset
-          const price = currentPrice - priceOffset;
-          const amount = randomAmount(0.2345, 7.6543, 4);
-          const total = (price * parseFloat(amount)).toFixed(2);
-          buyOrders.push({ price, amount, total });
-        }
-        
-        // Sort by price descending
-        buyOrders.sort((a, b) => b.price - a.price);
-        
-        buyOrdersTable.innerHTML = buyOrders.map(order => `
-          <tr class="buy-order">
-            <td class="text-success">${order.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-            <td class="text-end">${order.amount}</td>
-            <td class="text-end">${parseFloat(order.total).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-          </tr>
-        `).join('');
-        
-        // Update current price in order book
-        document.querySelector('.current-price-row strong').textContent = currentPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.querySelector('.current-price-row small').textContent = `≈ $${currentPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      }
-
-      // Load all history on page load
+      // Load histories and auto-connect
       loadOrderHistory();
       loadTradeHistory();
-      loadOpenOrders();
-      loadRecentTrades();
-      
-      // Refresh prices every 30 seconds
-      setInterval(loadRealPrice, 30000);
-      
-      // Refresh chart every 5 minutes
-      setInterval(loadChartData, 300000); // Auto-refresh chart every 5 mins with current timeframe
-      
-      // Update order book and trades more frequently for natural feel
-      setInterval(() => {
-        loadRecentTrades();
-        updateOrderBook();
-      }, 2000 + Math.random() * 2000); // Random interval 2-4 seconds
-      
-      // Refresh history when tab is switched
-      document.querySelectorAll('a[data-bs-toggle="tab"]').forEach(tab => {
-        tab.addEventListener('shown.bs.tab', function (e) {
-          if (e.target.getAttribute('href') === '#orderHistory') {
-            loadOrderHistory();
-          } else if (e.target.getAttribute('href') === '#tradeHistory') {
-            loadTradeHistory();
-          } else if (e.target.getAttribute('href') === '#openOrders') {
-            loadOpenOrders();
-          }
-        });
-      });
-
-      // Initialize everything after a short delay
-      setTimeout(() => {
-        console.log('🚀 Starting initialization...');
-        autoConnectWallet();
-        loadRealPrice();
-        loadChartData(); // This will use default 4H timeframe
-        loadOrderHistory();
-        loadTradeHistory();
-        loadOpenOrders();
-        loadRecentTrades();
-        
-        setInterval(loadRealPrice, 30000);
-        setInterval(loadChartData, 300000); // Auto-refresh chart every 5 mins with current timeframe
-        setInterval(() => {
-          loadRecentTrades();
-          updateOrderBook();
-        }, 2000 + Math.random() * 2000);
-        
-        console.log('✅ App initialized successfully');
-      }, 500);
+      autoConnectWallet();
+      loadRealPrice();
+      loadChartData();
 
     }); // End DOMContentLoaded
     
